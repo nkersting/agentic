@@ -1,8 +1,12 @@
 package com.example.langgraph;
 
-
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.StateGraph;
+
+// Try these imports - one of them should work
+// import org.bsc.langgraph4j.server.jetty.*;
+// import org.bsc.langgraph4j.jetty.*;
+//import org.bsc.langgraph4j.studio.jetty.*;
 
 import java.util.Map;
 
@@ -61,51 +65,53 @@ public class JettyStudioServer {
         
         System.out.println("Graph compiled successfully!");
         
-        // Try to find and use the Jetty studio classes
-        // We'll try different possible import patterns
-        
+        // Let's try to use reflection to find and instantiate the server
         try {
-            // Method 1: Try using reflection to find available classes
-            System.out.println("Looking for Jetty Studio classes...");
+            System.out.println("Attempting to start Jetty Studio Server...");
             
-            // Let's try some common class names that might exist
-            tryInstantiateStudioServer1(compiledGraph);
+            // Try Method 1: Look for main classes in the jetty artifact
+            tryStartServer1(compiledGraph);
             
         } catch (Exception e) {
             System.err.println("Method 1 failed: " + e.getMessage());
             
             try {
-                tryInstantiateStudioServer2(compiledGraph);
+                // Try Method 2: Look for server classes
+                tryStartServer2(compiledGraph);
+                
             } catch (Exception e2) {
                 System.err.println("Method 2 failed: " + e2.getMessage());
                 
-                try {
-                    tryInstantiateStudioServer3(compiledGraph);
-                } catch (Exception e3) {
-                    System.err.println("Method 3 failed: " + e3.getMessage());
-                    System.out.println("All methods failed. The Jetty studio might need a different approach.");
-                    System.out.println("Try using your IDE's autocomplete with 'org.bsc.langgraph4j.' to see available classes.");
-                }
+               
             }
         }
     }
     
-    private static void tryInstantiateStudioServer1(CompiledGraph<State> graph) throws Exception {
-        // Try common package naming patterns
+    private static void tryStartServer1(CompiledGraph<State> graph) throws Exception {
+        // Look for a main class in the jetty server artifact
+        Class<?> mainClass = Class.forName("org.bsc.langgraph4j.server.jetty.Main");
+        var main = mainClass.getMethod("main", String[].class);
+        main.invoke(null, (Object) new String[]{"--port", "8080"});
+    }
+    
+    private static void tryStartServer2(CompiledGraph<State> graph) throws Exception {
+        // Look for a server class
         Class<?> serverClass = Class.forName("org.bsc.langgraph4j.server.jetty.LangGraphServer");
-        System.out.println("Found class: " + serverClass.getName());
-        // We'd instantiate and use it here if found
+        var constructor = serverClass.getConstructor(int.class);
+        Object server = constructor.newInstance(8080);
+        
+        // Try to register the graph
+        var registerMethod = serverClass.getMethod("registerGraph", String.class, CompiledGraph.class);
+        registerMethod.invoke(server, "story-generator", graph);
+        
+        // Start the server
+        var startMethod = serverClass.getMethod("start");
+        startMethod.invoke(server);
+        
+        System.out.println("Jetty Studio Server started on http://localhost:8080");
+        
+        // Keep it running
+        Thread.currentThread().join();
     }
     
-    private static void tryInstantiateStudioServer2(CompiledGraph<State> graph) throws Exception {
-        // Try alternative naming
-        Class<?> serverClass = Class.forName("org.bsc.langgraph4j.jetty.StudioServer");
-        System.out.println("Found class: " + serverClass.getName());
-    }
-    
-    private static void tryInstantiateStudioServer3(CompiledGraph<State> graph) throws Exception {
-        // Try another alternative
-        Class<?> serverClass = Class.forName("org.bsc.langgraph4j.studio.jetty.Server");
-        System.out.println("Found class: " + serverClass.getName());
-    }
 }
