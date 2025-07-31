@@ -34,6 +34,12 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- LangGraph4J Studio for Quarkus (Visual Interface) -->
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-studio-quarkus</artifactId>
+        </dependency>
+
         <!-- LangGraph4J Core -->
         <dependency>
             <groupId>org.bsc.langgraph4j</groupId>
@@ -53,6 +59,15 @@
             <artifactId>langchain4j-anthropic</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
+
+        <!-- Lombok for reducing boilerplate code -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- SLF4J Simple Logger for logging -->
         <dependency>
@@ -80,6 +95,13 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -135,3 +157,5 @@
         </repository>
     </repositories>
 </project>
+
+
